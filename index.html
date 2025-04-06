@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vasthupyra - වාස්තු ඔබේ අතට</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simple-parallax-js/5.6.2/simpleParallax.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            scroll-behavior: smooth;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #1a2639 0%, #3a4660 100%);
+        }
+        
+        .hero-gradient {
+            background: linear-gradient(135deg, #1a2639 0%, #3a4660 70%, #26435f 100%);
+        }
+        
+        .text-gradient {
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-image: linear-gradient(45deg, #4a90e2, #8e44ad);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease;
+        }
+        
+        .scroll-reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .nav-link {
+            position: relative;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #4a90e2;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .custom-shape {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            overflow: hidden;
+            line-height: 0;
+        }
+
+        .custom-shape svg {
+            position: relative;
+            display: block;
+            width: calc(100% + 1.3px);
+            height: 80px;
+        }
+
+        .custom-shape .shape-fill {
+            fill: #FFFFFF;
+        }
+        
+        .testimonial-card {
+            transition: all 0.3s ease;
+        }
+        
+        .testimonial-card:hover {
+            transform: scale(1.02);
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .floating-delay-1 {
+            animation-delay: 1s;
+        }
+        
+        .floating-delay-2 {
+            animation-delay: 2s;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <!-- Navigation -->
+    <header class="fixed w-full z-50 transition-all duration-300" id="navbar">
+        <div class="gradient-bg text-white py-4">
+            <div class="container mx-auto flex justify-between items-center px-4 lg:px-8">
+                <div class="text-2xl font-bold flex items-center space-x-2">
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full"></div>
+                    </div>
+                    <span>Vasthupyra</span>
+                </div>
+                
+                <button id="mobile-menu-toggle" class="lg:hidden focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+                
+                <nav class="hidden lg:block">
+                    <ul class="flex space-x-8">
+                        <li><a href="#home" class="nav-link hover:text-blue-300 font-medium">මුල් පිටුව</a></li>
+                        <li><a href="#about" class="nav-link hover:text-blue-300 font-medium">අප ගැන</a></li>
+                        <li><a href="#services" class="nav-link hover:text-blue-300 font-medium">සේවාවන්</a></li>
+                        <li><a href="#products" class="nav-link hover:text-blue-300 font-medium">නිෂ්පාදන</a></li>
+                        <li><a href="#testimonials" class="nav-link hover:text-blue-300 font-medium">සාක්ෂි</a></li>
+                        <li><a href="#contact" class="nav-link hover:text-blue-300 font-medium">අප අමතන්න</a></li>
+                    </ul>
+                </nav>
+                
+                <div class="hidden lg:block">
+                    <a href="#contact" class="bg-white text-blue-600 hover:bg-blue-100 font-bold py-2 px-6 rounded-full transition duration-300">උපදෙස් ලබාගන්න</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="lg:hidden hidden bg-gray-900 text-white">
+            <div class="container mx-auto px-4 py-4">
+                <ul class="space-y-4">
+                    <li><a href="#home" class="block py-2 hover:text-blue-300">මුල් පිටුව</a></li>
+                    <li><a href="#about" class="block py-2 hover:text-blue-300">අප ගැන</a></li>
+                    <li><a href="#services" class="block py-2 hover:text-blue-300">සේවාවන්</a></li>
+                    <li><a href="#products" class="block py-2 hover:text-blue-300">නිෂ්පාදන</a></li>
+                    <li><a href="#testimonials" class="block py-2 hover:text-blue-300">සාක්ෂි</a></li>
+                    <li><a href="#contact" class="block py-2 hover:text-blue-300">අප අමතන්න</a></li>
+                    <li class="pt-2">
+                        <a href="#contact" class="inline-block bg-white text-blue-600 hover:bg-blue-100 font-bold py-2 px-6 rounded-full transition duration-300">උපදෙස් ලබාගන්න</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero-gradient text-white pt-32 pb-20 relative overflow-hidden">
+        <div id="canvas-container"></div>
+        <div class="container mx-auto px-4 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="scroll-reveal">
+                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+                        <span class="text-gradient">Vasthupyra</span> වෙත සාදරයෙන් පිළිගනිමු
+                    </h1>
+                    <p class="text-xl text-gray-200 mb-8 leading-relaxed">ඔබේ නිවසට සහ ව්‍යාපාරයට වාස්තු ශාස්ත්‍රයේ ධනාත්මක ශක්තිය ගෙන එන්න. අපි උසස් තත්ත්වයේ වාස්තු නිෂ්පාදන සහ වෘත්තීය මග පෙන්වීම් සපයන ප්‍රමුඛ පෙළේ වෙබ් සාප්පුවයි.</p>
+                    <div class="flex flex-wrap gap-4">
+                        <a href="#products" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full transition duration-300 transform hover:scale-105 flex items-center">
+                            <span>අපගේ නිෂ්පාදන බලන්න</span>
+                            <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                            </svg>
+                        </a>
+                        <a href="#contact" class="bg-transparent border-2 border-white hover:bg-white hover:text-blue-600 text-white font-bold py-3 px-8 rounded-full transition duration-300">අප අමතන්න</a>
+                    </div>
+                    
+                    <div class="mt-12 flex items-center space-x-4">
+                        <div class="flex -space-x-2">
+                            <div class="w-10 h-10 rounded-full bg-blue-400 border-2 border-white"></div>
+                            <div class="w-10 h-10 rounded-full bg-purple-400 border-2 border-white"></div>
+                            <div class="w-10 h-10 rounded-full bg-green-400 border-2 border-white"></div>
+                            <div class="w-10 h-10 rounded-full bg-yellow-400 border-2 border-white"></div>
+                        </div>
+                        <div class="text-gray-300">
+                            <span class="font-bold text-white">1000+</span> සතුටු පාරිභෝගිකයින්
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="relative hidden lg:block">
+                    <div class="w-64 h-64 bg-blue-500 bg-opacity-20 rounded-full absolute top-0 left-0 floating"></div>
+                    <div class="w-80 h-80 bg-purple-500 bg-opacity-20 rounded-full absolute top-20 right-0 floating floating-delay-1"></div>
+                    <div class="w-72 h-72 bg-blue-600 bg-opacity-20 rounded-full absolute bottom-0 left-20 floating floating-delay-2"></div>
+                    
+                    <div class="relative z-10 bg-gradient-to-br from-white to-gray-100 p-8 rounded-2xl shadow-xl transform rotate-3">
+                        <div class="text-center mb-6">
+                            <div class="w-24 h-24 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800 mt-4">ශ්‍රී යන්ත්‍ර</h3>
+                        </div>
+                        <div class="flex justify-between text-gray-600 text-sm">
+                            <span>මිල</span>
+                            <span class="font-bold text-gray-800">රු. 3,500.00</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                            <div class="bg-green-500 h-2 rounded-full" style="width: 75%"></div>
+                        </div>
+                        <div class="flex justify-between text-gray-600 text-sm mt-1">
+                            <span>ශක්ති මට්ටම</span>
+                            <span class="font-bold text-gray-800">75%</span>
+                        </div>
+                        <div class="mt-6">
+                            <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-300">
+                                ඇණවුම් කරන්න
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="relative z-10 bg-white p-6 rounded-2xl shadow-lg transform -rotate-2 absolute bottom-10 -left-10">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                <svg class="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-800">වාසනාවට හේතුවේ</h4>
+                                <p class="text-sm text-gray-600">බොහෝ පාරිභෝගිකයින් විසින් තහවුරු කර ඇත</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="custom-shape">
+            <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill"></path>
+            </svg>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-4 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                <div class="scroll-reveal">
+                    <div class="text-3xl md:text-4xl font-bold text-blue-600">5000+</div>
+                    <p class="text-gray-600 mt-2">සතුටුදායක පාරිභෝගිකයින්</p>
+                </div>
+                <div class="scroll-reveal">
+                    <div class="text-3xl md:text-4xl font-bold text-blue-600">200+</div>
+                    <p class="text-gray-600 mt-2">වාස්තු නිෂ්පාදන</p>
+                </div>
+                <div class="scroll-reveal">
+                    <div class="text-3xl md:text-4xl font-bold text-blue-600">10+</div>
+                    <p class="text-gray-600 mt-2">වසරක අත්දැකීම්</p>
+                </div>
+                <div class="scroll-reveal">
+                    <div class="text-3xl md:text-4xl font-bold text-blue-600">4.9</div>
+                    <p class="text-gray-600 mt-2">පාරිභෝගික තෘප්තිය (තරු 5න්)</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-20 bg-gray-50">
+        <div class="container mx-auto px-4 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                <div class="scroll-reveal order-2 lg:order-1">
+                    <div class="relative">
+                        <div class="w-full h-96 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="grid grid-cols-2 gap-6 p-4">
+                                <div class="bg-white p-4 rounded-xl shadow-md transform rotate-3">
+                                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                                        <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </div>
+                                    <h4 class="font-bold text-gray-800">ධනාත්මක ශක්තිය</h4>
+                                </div>
+                                <div class="bg-white p-4 rounded-xl shadow-md transform -rotate-2">
+                                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                                        <svg class="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M10 2a6 6 0 00-6 6v2a6 6 0 0012 0V8a6 6 0 00-6-6zM5 8a5 5 0 1110 0v2a5 5 0 01-10 0V8z"></path>
+                                            <path d="M2 13.5V12h16v1.5c0 1.38-1.12 2.5-2.5 2.5h-11C3.12 16 2 14.88 2 13.5z"></path>
+                                        </svg>
+                                    </div>
+                                    <h4 class="font-bold text-gray-800">මානසික සුවය</h4>
+                                </div>
+                                <div class="bg-white p-4 rounded-xl shadow-md transform -rotate-1">
+                                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                                        <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </div>
+                                    <h4 class="font-bold text-gray-800">සෞභාග්‍යය</h4>
+                                </div>
+                                <div class="bg-white p-4 rounded-xl shadow-md transform rotate-2">
+                                    <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
+                                        <svg class="w-6 h-6 text-yellow-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </div>
+                                    <h4 class="font-bold text-gray-800">සමගිය</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="scroll-reveal order-1 lg:order-2">
+                    <div class="inline-block mb-6 bg-blue-100 text-blue-600 px-4 py-2 rounded-full font-medium">අප ගැන</div>
+                    <h2 class="text-3xl md:text-4xl font-bold mb-6 text-gray-800">වාස්තු ශාස්ත්‍රය තුළින් <span class="text-blue-600">ජීවිත පරිවර්තනය</span> කරන්න</h2>
+                    <p class="text-gray-700 mb-6 text-lg">Vasthupyra ආරම්භ වූයේ වාස්තු ශාස්ත්‍රය කෙරෙහි ඇති දැඩි ඇල්ම සහ එහි ඇති යහපත් බලපෑම ලොවට ගෙන ඒමේ අරමුණෙනි. වසර ගණනාවක පර්යේෂණ සහ පළපුරුද්ද තුළින්, අපි අව්‍යාජ සහ බලගතු වාස්තු නිෂ්පාදන තෝරා එකතු කර ඔබ වෙත ගෙන එන්නෙමු.</p>
+                    <p class="text-gray-700 mb-8">අපගේ කණ්ඩායම වාස්තු මූලධර්ම පිළිබඳ ගැඹුරු අවබෝධයක් ඇති පළපුරුදු පුද්ගලයින්ගෙන් සමන්විත වේ. අපි ඔබට නිවැරදි තොරතුරු සහ මග පෙන්වීම් ලබා දීමට කැපවී සිටින අතර, එමඟින් ඔබේ ජීවිතයේ ධනාත්මක වෙනස්කම් ඇති කර ගැනීමට ඔබට හැකි වේ.</p>
+                    
+                    <div class="space-y-6">
+                        <div class="flex items-start space-x-4">
+                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-800">අපගේ දැක්ම</h3>
+                                <p class="text-gray-700 mt-2">අපගේ දැක්ම වන්නේ සෑම නිවසක්ම සහ වැඩබිමක්ම ධනාත්මක ශක්තියෙන් පිරුණු, සමගියෙන් හා සෞභාග්‍යයෙන් පිරිපුන් ස්ථානයක් බවට පත් කිරීමයි.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-4">
+                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                                <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-800">අපගේ වටිනාකම්</h3>
+                                <p class="text-gray-700 mt-2">අපි අව්‍යාජත්වය
+                                    <div class="bg-white p-8 rounded-xl shadow-sm hover:shadow-md transition-all border-l-4 border-yellow-500">
+                                        <h3 class="text-xl font-bold mb-3 flex items-center">
+                                            <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-600 mr-4">
+                                                <i class="fas fa-gem text-xl"></i>
+                                            </div>
+                                            වාස්තු නිෂ්පාදන පරීක්ෂණය
+                                        </h3>
+                                        <p class="text-gray-600 mt-4">
+                                            ඔබ භාවිතා කරන වාස්තු නිෂ්පාදනවල සත්‍යතාවය සහ ඵලදායීතාවය පරීක්ෂා කිරීම. අපගේ විශේෂඥයින් ඔබේ නිෂ්පාදන පරීක්ෂා කර ඒවායේ ගුණාත්මකභාවය සහතික කරයි.
+                                        </p>
+                                        <div class="mt-6">
+                                            <a href="#" class="text-yellow-600 hover:text-yellow-800 font-medium">
+                                                තවත් බලන්න <i class="fas fa-arrow-right ml-1"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        
+                        <!-- Consultation Section -->
+                        <section id="consultation" class="py-16 bg-gradient-to-r from-blue-50 to-green-50">
+                            <div class="container mx-auto px-6">
+                                <div class="flex flex-col md:flex-row items-center">
+                                    <div class="md:w-1/2 mb-8 md:mb-0">
+                                        <h2 class="text-3xl md:text-4xl font-bold mb-6">නිදහස් වාස්තු උපදේශනයක් ලබා ගන්න</h2>
+                                        <p class="text-gray-600 mb-6">
+                                            අපගේ වාස්තු විශේෂඥයින් සමඟ නිදහස් සාකච්ඡාවක් සඳහා අයදුම් කරන්න. ඔබේ නිවස හෝ ව්‍යාපාරික ස්ථානය සඳහා මූලික වාස්තු උපදේශන ලබා ගන්න.
+                                        </p>
+                                        <ul class="space-y-3 text-gray-700">
+                                            <li class="flex items-start">
+                                                <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                                                <span>නිදහස් මූලික තක්සේරුව</span>
+                                            </li>
+                                            <li class="flex items-start">
+                                                <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                                                <span>වෘත්තීය උපදෙස්</span>
+                                            </li>
+                                            <li class="flex items-start">
+                                                <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                                                <span>පුද්ගලීකරණය කරන ලද විසඳුම්</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <div class="md:w-1/2 bg-white rounded-xl shadow-md p-8">
+                                        <h3 class="text-xl font-bold mb-6 text-center">උපදේශනය සඳහා අයදුම් කරන්න</h3>
+                                        <form class="space-y-4">
+                                            <div>
+                                                <label for="consult-name" class="block text-gray-700 text-sm font-medium mb-2">නම</label>
+                                                <input type="text" id="consult-name" name="consult-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" required>
+                                            </div>
+                                            <div>
+                                                <label for="consult-email" class="block text-gray-700 text-sm font-medium mb-2">විද්‍යුත් තැපෑල</label>
+                                                <input type="email" id="consult-email" name="consult-email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" required>
+                                            </div>
+                                            <div>
+                                                <label for="consult-phone" class="block text-gray-700 text-sm font-medium mb-2">දුරකථන අංකය</label>
+                                                <input type="tel" id="consult-phone" name="consult-phone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" required>
+                                            </div>
+                                            <div>
+                                                <label for="consult-type" class="block text-gray-700 text-sm font-medium mb-2">උපදේශන වර්ගය</label>
+                                                <select id="consult-type" name="consult-type" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" required>
+                                                    <option value="">තෝරන්න</option>
+                                                    <option value="home">නිවස සඳහා</option>
+                                                    <option value="business">ව්‍යාපාරික ස්ථාන සඳහා</option>
+                                                    <option value="construction">නව ගොඩනැගිල්ල සඳහා</option>
+                                                    <option value="other">වෙනත්</option>
+                                                </select>
+                                            </div>
+                                            <button type="submit" class="w-full bg-gradient-to-r from-green-500 to-blue-500 text-white py-3 px-6 rounded-lg hover:shadow-lg transition-all">
+                                                අයදුම් කරන්න <i class="fas fa-paper-plane ml-2"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        
+                        <!-- Testimonials Section -->
+                        <section class="py-16 bg-white">
+                            <div class="container mx-auto px-6">
+                                <div class="text-center mb-16">
+                                    <span class="text-green-500 font-semibold">පාරිභෝගික අදහස්</span>
+                                    <h2 class="text-3xl md:text-4xl font-bold mt-2 mb-4">අප ගැන පාරිභෝගිකයින් කියන දේ</h2>
+                                    <div class="w-24 h-1 bg-gradient-to-r from-blue-500 to-green-500 mx-auto"></div>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                    <div class="bg-gray-50 p-6 rounded-xl">
+                                        <div class="flex items-center mb-4">
+                                            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xl font-bold mr-4">ස</div>
+                                            <div>
+                                                <h4 class="font-bold">සමන් මාලින්</h4>
+                                                <div class="flex text-yellow-400 text-sm">
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="fas fa-star"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p class="text-gray-600">
+                                            "වාස්තුප්‍රයාගේ උපදේශනය ලබා ගත් පසු මගේ නිවසේ පරිසරය සම්පූර්ණයෙන්ම වෙනස් විය. දැන් අපගේ පවුලේ සාමය සහ සෞභාග්‍යය වැඩි විය."
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="bg-gray-50 p-6 rounded-xl">
+                                        <div class="flex items-center mb-4">
+                                            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-xl font-bold mr-4">ප</div>
+                                            <div>
+                                                <h4 class="font-bold">ප්‍රියන්ත සිල්වා</h4>
+                                                <div class="flex text-yellow-400 text-sm">
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="fas fa-star-half-alt"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p class="text-gray-600">
+                                            "මගේ ව්‍යාපාරික ස්ථානය සඳහා ලබා ගත් වාස්තු උපදේශනය අතිශයින්ම ප්‍රයෝජනවත් විය. ව්‍යාපාරික කටයුතු වල දියුණුවක් දක්නට ලැබුණා."
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="bg-gray-50 p-6 rounded-xl">
+                                        <div class="flex items-center mb-4">
+                                            <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 text-xl font-bold mr-4">අ</div>
+                                            <div>
+                                                <h4 class="font-bold">අනුජා පෙරේරා</h4>
+                                                <div class="flex text-yellow-400 text-sm">
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="fas fa-star"></i>
+                                                    <i class="fas fa-star"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <p class="text-gray-600">
+                                            "වාස්තුප්‍රයාගේ නිෂ්පාදන භාවිතා කිරීමෙන් පසු මගේ ජීවිතයේ ධනාත්මක වෙනස්කම් දකින්නට ලැබුණා. ඉතා උසස් තත්ත්වයේ නිෂ්පාදන."
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        
+                        <!-- Contact Section -->
+                        <section id="contact" class="py-16 bg-gray-50">
+                            <div class="container mx-auto px-6">
+                                <div class="text-center mb-16">
+                                    <span class="text-green-500 font-semibold">අප අමතන්න</span>
+                                    <h2 class="text-3xl md:text-4xl font-bold mt-2 mb-4">අප සමඟ සම්බන්ධ වන්න</h2>
+                                    <div class="w-24 h-1 bg-gradient-to-r from-blue-500 to-green-500 mx-auto"></div>
+                                </div>
+                                
+                                <div class="flex flex-col md:flex-row gap-8">
+                                    <div class="md:w-1/2">
+                                        <div class="bg-white p-8 rounded-xl shadow-sm">
+                                            <h3 class="text-xl font-bold mb-6">අපව සොයා ගන්න</h3>
+                                            
+                                            <div class="space-y-6">
+                                                <div class="flex items-start">
+                                                    <div class="flex-shrink-0 mt-1">
+                                                        <div class="flex items-center justify-center h-10 w-10 rounded-full bg-blue-100 text-blue-600">
+                                                            <i class="fas fa-map-marker-alt"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="ml-4">
+                                                        <h4 class="font-medium text-gray-800">ලිපිනය</h4>
+                                                        <p class="text-gray-600 mt-1">වාස්තුප්‍රයා, 123 වාස්තු මාවත, කොළඹ 05, ශ්‍රී ලංකාව</p>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="flex items-start">
+                                                    <div class="flex-shrink-0 mt-1">
+                                                        <div class="flex items-center justify-center h-10 w-10 rounded-full bg-green-100 text-green-600">
+                                                            <i class="fas fa-phone-alt"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="ml-4">
+                                                        <h4 class="font-medium text-gray-800">දුරකථන</h4>
+                                                        <p class="text-gray-600 mt-1">+94 11 234 5678<br>+94 76 123 4567</p>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="flex items-start">
+                                                    <div class="flex-shrink-0 mt-1">
+                                                        <div class="flex items-center justify-center h-10 w-10 rounded-full bg-purple-100 text-purple-600">
+                                                            <i class="fas fa-envelope"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="ml-4">
+                                                        <h4 class="font-medium text-gray-800">විද්‍යුත් තැපෑල</h4>
+                                                        <p class="text-gray-600 mt-1">info@vasthupyra.com<br>support@vasthupyra.com</p>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="flex items-start">
+                                                    <div class="flex-shrink-0 mt-1">
+                                                        <div class="flex items-center justify-center h-10 w-10 rounded-full bg-yellow-100 text-yellow-600">
+                                                            <i class="fas fa-clock"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="ml-4">
+                                                        <h4 class="font-medium text-gray-800">කාලසීමාව</h4>
+                                                        <p class="text-gray-600 mt-1">සඳුදා - සිකුරාදා: 9.00 AM - 6.00 PM<br>සෙනසුරාදා: 9.00 AM - 1.00 PM<br>ඉරිදා: වසා ඇත</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="mt-8">
+                                                <h4 class="font-medium text-gray-800 mb-4">සමාජ මාධ්‍ය</h4>
+                                                <div class="flex space-x-4">
+                                                    <a href="#" class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center hover:bg-blue-200 transition">
+                                                        <i class="fab fa-facebook-f"></i>
+                                                    </a>
+                                                    <a href="#" class="w-10 h-10 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center hover:bg-pink-200 transition">
+                                                        <i class="fab fa-instagram"></i>
+                                                    </a>
+                                                    <a href="#" class="w-10 h-10 rounded-full bg-blue-400 text-white flex items-center justify-center hover:bg-blue-500 transition">
+                                                        <i class="fab fa-twitter"></i>
+                                                    </a>
+                                                    <a href="#" class="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center hover:bg-red-200 transition">
+                                                        <i class="fab fa-youtube"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="md:w-1/2">
+                                        <div class="bg-white p-8 rounded-xl shadow-sm">
+                                            <h3 class="text-xl font-bold mb-6">පණිවිඩයක් එවන්න</h3>
+                                            <form class="space-y-4">
+                                                <div>
+                                                    <label for="contact-name" class="block text-gray-700 text-sm font-medium mb-2">නම</label>
+                                                    <input type="text" id="contact-name" name="contact-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" required>
+                                                </div>
+                                                <div>
+                                                    <label for="contact-email" class="block text-gray-700 text-sm font-medium mb-2">විද්‍යුත් තැපෑල</label>
+                                                    <input type="email" id="contact-email" name="contact-email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" required>
+                                                </div>
+                                                <div>
+                                                    <label for="contact-subject" class="block text-gray-700 text-sm font-medium mb-2">විෂය</label>
+                                                    <input type="text" id="contact-subject" name="contact-subject" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" required>
+                                                </div>
+                                                <div>
+                                                    <label for="contact-message" class="block text-gray-700 text-sm font-medium mb-2">පණිවිඩය</label>
+                                                    <textarea id="contact-message" name="contact-message" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" required></textarea>
+                                                </div>
+                                                <button type="submit" class="w-full bg-gradient-to-r from-green-500 to-blue-500 text-white py-3 px-6 rounded-lg hover:shadow-lg transition-all">
+                                                    පණිවිඩය යවන්න <i class="fas fa-paper-plane ml-2"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                        
+                        <!-- Newsletter Section -->
+                        <section class="py-16 bg-gradient-to-r from-blue-500 to-green-500 text-white">
+                            <div class="container mx-auto px-6 text-center">
+                                <h2 class="text-2xl md:text-3xl font-bold mb-4">අපගේ නිවේදනා පත්‍රයට ලියාපදිංචි වන්න</h2>
+                                <p class="mb-8 max-w-2xl mx-auto">වාස්තු විද්‍යාව පිළිබඳ නවතම තොරතුරු, උපදෙස් සහ විශේෂ දීමනා ගැන දැනුවත් වන්න.</p>
+                                
+                                <div class="max-w-md mx-auto flex">
+                                    <input type="email" placeholder="ඔබගේ විද්‍යුත් තැපෑල" class="flex-grow px-4 py-3 rounded-l-lg focus:outline-none text-gray-800">
+                                    <button class="bg-gray-800 hover:bg-gray-900 px-6 py-3 rounded-r-lg transition">
+                                        ලියාපදිංචි වන්න <i class="fas fa-paper-plane ml-2"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+                        
+                        <!-- Footer -->
+                        <footer class="bg-gray-800 text-white py-12">
+                            <div class="container mx-auto px-6">
+                                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                                    <div>
+                                        <h3 class="text-xl font-bold mb-4 gradient-text">Vasthupyra</h3>
+                                        <p class="text-gray-400">වාස්තු විද්‍යාවේ පුරාණ ඥානය නවීන ජීවන රටාවලට ගෙන ඒම.</p>
+                                        <div class="mt-4 flex space-x-4">
+                                            <a href="#" class="text-gray-400 hover:text-white transition">
+                                                <i class="fab fa-facebook-f"></i>
+                                            </a>
+                                            <a href="#" class="text-gray-400 hover:text-white transition">
+                                                <i class="fab fa-instagram"></i>
+                                            </a>
+                                            <a href="#" class="text-gray-400 hover:text-white transition">
+                                                <i class="fab fa-twitter"></i>
+                                            </a>
+                                            <a href="#" class="text-gray-400 hover:text-white transition">
+                                                <i class="fab fa-youtube"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-bold text-lg mb-4">සබැඳි</h4>
+                                        <ul class="space-y-2">
+                                            <li><a href="#home" class="text-gray-400 hover:text-white transition">මුල් පිටුව</a></li>
+                                            <li><a href="#about" class="text-gray-400 hover:text-white transition">අප ගැන</a></li>
+                                            <li><a href="#products" class="text-gray-400 hover:text-white transition">නිෂ්පාදන</a></li>
+                                            <li><a href="#services" class="text-gray-400 hover:text-white transition">සේවාවන්</a></li>
+                                            <li><a href="#consultation" class="text-gray-400 hover:text-white transition">උපදේශන</a></li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-bold text-lg mb-4">නිෂ්පාදන</h4>
+                                        <ul class="space-y-2">
+                                            <li><a href="#" class="text-gray-400 hover:text-white transition">වාස්තු යන්ත්‍ර</a></li>
+                                            <li><a href="#" class="text-gray-400 hover:text-white transition">ස්ඵටික ගල්</a></li>
+                                            <li><a href="#" class="text-gray-400 hover:text-white transition">වාස්තු පිළිම</a></li>
+                                            <li><a href="#" class="text-gray-400 hover:text-white transition">වාස්තු උපකරණ</a></li>
+                                            <li><a href="#" class="text-gray-400 hover:text-white transition">වාස්තු පොත්</a></li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-bold text-lg mb-4">සම්බන්ධ වන්න</h4>
+                                        <ul class="space-y-2">
+                                            <li class="flex items-start">
+                                                <i class="fas fa-map-marker-alt mt-1 mr-2 text-gray-400"></i>
+                                                <span class="text-gray-400">වාස්තුප්‍රයා, 123 වාස්තු මාවත, කොළඹ 05</span>
+                                            </li>
+                                            <li class="flex items-start">
+                                                <i class="fas fa-phone-alt mt-1 mr-2 text-gray-400"></i>
+                                                <span class="text-gray-400">+94 11 234 5678</span>
+                                            </li>
+                                            <li class="flex items-start">
+                                                <i class="fas fa-envelope mt-1 mr-2 text-gray-400"></i>
+                                                <span class="text-gray-400">info@vasthupyra.com</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                
+                                <div class="border-t border-gray-700 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+                                    <p class="text-gray-400">© 2023 Vasthupyra. සියලුම හිමිකම් ඇවිරිණි.</p>
+                                    <div class="mt-4 md:mt-0">
+                                        <a href="#" class="text-gray-400 hover:text-white transition mx-2">පුද්ගලදත්ත ප්‍රතිපත්තිය</a>
+                                        <a href="#" class="text-gray-400 hover:text-white transition mx-2">භාවිත නියම</a>
+                                        <a href="#" class="text-gray-400 hover:text-white transition ml-2">කුකී ප්‍රතිපත්තිය</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </footer>
+                        
+                        <!-- Back to Top Button -->
+                        <button id="back-to-top" class="fixed bottom-6 right-6 w-12 h-12 bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-full shadow-lg flex items-center justify-center transition-all opacity-0 invisible">
+                            <i class="fas fa-arrow-up"></i>
+                        </button>
+                        
+                        <!-- Scripts -->
+                        <script>
+                            // Mobile Menu Toggle
+                            const mobileMenuButton = document.getElementById('mobile-menu-button');
+                            const mobileMenu = document.getElementById('mobile-menu');
+                            const closeMenu = document.getElementById('close-menu');
+                            
+                            mobileMenuButton.addEventListener('click', () => {
+                                mobileMenu.classList.remove('hidden');
+                                document.body.style.overflow = 'hidden';
+                            });
+                            
+                            closeMenu.addEventListener('click', () => {
+                                mobileMenu.classList.add('hidden');
+                                document.body.style.overflow = '';
+                            });
+                        
+                            // Back to Top Button
+                            const backToTopButton = document.getElementById('back-to-top');
+                            
+                            window.addEventListener('scroll', () => {
+                                if (window.pageYOffset > 300) {
+                                    backToTopButton.classList.remove('opacity-0', 'invisible');
+                                    backToTopButton.classList.add('opacity-100', 'visible');
+                                } else {
+                                    backToTopButton.classList.remove('opacity-100', 'visible');
+                                    backToTopButton.classList.add('opacity-0', 'invisible');
+                                }
+                            });
+                            
+                            backToTopButton.addEventListener('click', () => {
+                                window.scrollTo({
+                                    top: 0,
+                                    behavior: 'smooth'
+                                });
+                            });
+                        
+                            // Scroll Reveal Animation
+                            ScrollReveal().reveal('section, .product-card', {
+                                delay: 200,
+                                distance: '20px',
+                                origin: 'bottom',
+                                interval: 100,
+                                easing: 'cubic-bezier(0.5, 0, 0, 1)',
+                                reset: true
+                            });
+                        
+                            // Three.js Background
+                            const threeContainer = document.getElementById('threejs-container');
+                            
+                            if (threeContainer) {
+                                const scene = new THREE.Scene();
+                                const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                                const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+                                
+                                renderer.setSize(window.innerWidth, window.innerHeight);
+                                threeContainer.appendChild(renderer.domElement);
+                                
+                                // Create particles
+                                const particlesGeometry = new THREE.BufferGeometry();
+                                const particlesCount = 500;
+                                
+                                const posArray = new Float32Array(particlesCount * 3);
+                                
+                                for(let i = 0; i < particlesCount * 3; i++) {
+                                    posArray[i] = (Math.random() - 0.5) * 10;
+                                }
+                                
+                                particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+                                
+                                const particlesMaterial = new THREE.PointsMaterial({
+                                    size: 0.02,
+                                    color: 0x3b82f6,
+                                    transparent: true,
+                                    opacity: 0.8
+                                });
+                                
+                                const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+                                scene.add(particlesMesh);
+                                
+                                camera.position.z = 3;
+                                
+                                function animate() {
+                                    requestAnimationFrame(animate);
+                                    
+                                    particlesMesh.rotation.x += 0.0005;
+                                    particlesMesh.rotation.y += 0.0005;
+                                    
+                                    renderer.render(scene, camera);
+                                }
+                                
+                                animate();
+                                
+                                window.addEventListener('resize', () => {
+                                    camera.aspect = window.innerWidth / window.innerHeight;
+                                    camera.updateProjectionMatrix();
+                                    renderer.setSize(window.innerWidth, window.innerHeight);
+                                });
+                            }
+                        
+                            // p5.js Animation for Hero Section
+                            const p5Canvas = document.getElementById('p5-canvas');
+                            
+                            if (p5Canvas) {
+                                new p5((p) => {
+                                    let particles = [];
+                                    
+                                    p.setup = () => {
+                                        p.createCanvas(p.windowWidth, p.windowHeight);
+                                        
+                                        for(let i = 0; i < 50; i++) {
+                                            particles.push({
+                                                x: p.random(p.width),
+                                                y: p.random(p.height),
+                                                size: p.random(2, 6),
+                                                speed: p.random(0.5, 2),
+                                                color: p.color(59, 130, 246, 50)
+                                            });
+                                        }
+                                    };
+                                    
+                                    p.draw = () => {
+                                        p.clear();
+                                        
+                                        for(let particle of particles) {
+                                            particle.y -= particle.speed;
+                                            
+                                            if(particle.y < 0) {
+                                                particle.y = p.height;
+                                                particle.x = p.random(p.width);
+                                            }
+                                            
+                                            p.noStroke();
+                                            p.fill(particle.color);
+                                            p.ellipse(particle.x, particle.y, particle.size);
+                                        }
+                                    };
+                                    
+                                    p.windowResized = () => {
+                                        p.resizeCanvas(p.windowWidth, p.windowHeight);
+                                    };
+                                }, 'p5-canvas');
+                            }
+                        
+                            // GSAP Animations
+                            gsap.from("#logo", {
+                                duration: 1,
+                                y: -50,
+                                opacity: 0,
+                                ease: "power2.out"
+                            });
+                            
+                            gsap.from(".nav-link", {
+                                duration: 1,
+                                y: -50,
+                                opacity: 0,
+                                stagger: 0.1,
+                                ease: "power2.out",
+                                delay: 0.3
+                            });
+                            
+                            gsap.from("#hero h1", {
+                                duration: 1,
+                                x: -50,
+                                opacity: 0,
+                                ease: "power2.out",
+                                delay: 0.5
+                            });
+                            
+                            gsap.from("#hero p", {
+                                duration: 1,
+                                x: -50,
+                                opacity: 0,
+                                ease: "power2.out",
+                                delay: 0.7
+                            });
+                            
+                            gsap.from("#hero a", {
+                                duration: 1,
+                                y: 50,
+                                opacity: 0,
+                                stagger: 0.1,
+                                ease: "power2.out",
+                                delay: 0.9
+                            });
+                        </script>
